@@ -7,8 +7,8 @@ body{background:radial-gradient(circle at 20% 20%,rgba(0,229,255,.12),transparen
 #nav{backdrop-filter:blur(12px);background:rgba(5,10,20,.55)!important;box-shadow:0 8px 30px rgba(0,229,255,.12)}
 #site-title,#site-subtitle,#site-name,#nav .site-page,#nav #site-name{text-shadow:0 0 12px rgba(0,229,255,.55)}
 #nav .site-page{position:relative}
-#nav .site-page::after{content:'';position:absolute;bottom:0;left:50%;width:0;height:2px;background:var(--twi-cyan);transition:all .3s ease;transform:translateX(-50%)}
-#nav .site-page:hover::after{width:80%}
+#nav .site-page::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--twi-cyan);transition:all .3s ease;border-radius:1px}
+#nav .site-page:hover::after{width:100%}
 
 /* ============ Cards ============ */
 .card-widget,.recent-post-item,#post{border:1px solid rgba(0,229,255,.14);box-shadow:0 12px 35px rgba(0,0,0,.16),0 0 18px rgba(0,229,255,.06);border-radius:16px!important;transition:all .3s ease}
