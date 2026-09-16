@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>安全警示</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #fff6e5 0%, #f0f2f5 320px);
+    min-height: 100vh;
+    color: #333;
+  }
+  .container {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 36px 16px 30px;
+  }
+  .icon {
+    font-size: 72px;
+    text-align: center;
+    line-height: 1;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  h1 {
+    text-align: center;
+    font-size: 21px;
+    color: #d46b08;
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px 18px;
+    margin-top: 22px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+  .danger-card {
+    border: 1px solid #ffd591;
+    background: #fffbe6;
+  }
+  .danger-card p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #614700;
+  }
+  .danger-card strong {
+    color: #d4380d;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #d46b08;
+    margin-bottom: 14px;
+  }
+  .tip {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px dashed #f0f0f0;
+  }
+  .tip:last-child {
+    border-bottom: none;
+    padding-bottom: 2px;
+  }
+  .tip-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff1d6;
+    color: #d46b08;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 26px;
+    margin-right: 12px;
+  }
+  .tip-body h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+  }
+  .tip-body p {
+    font-size: 13px;
+    color: #888;
+    margin-top: 3px;
+    line-height: 1.6;
+  }
+  .disclaimer {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.8;
+    margin-top: 24px;
+    padding: 0 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">⚠️</div>
+    <h1>你刚才扫描了一个<br>未知来源的二维码</h1>
+
+    <div class="card danger-card">
+      <p>你刚刚在没有核实来源的页面上填写了<strong>学号</strong>和<strong>姓名</strong>，这些信息已经被提交。如果这是真实攻击，攻击者现在已经拿到了它们。</p>
+    </div>
+
+    <div class="card">
+      <div class="section-title">今后请记住这三条</div>
+      <div class="tip">
+        <div class="tip-num">1</div>
+        <div class="tip-body">
+          <h2>扫之前看来源</h2>
+          <p>二维码只是一串入口地址，扫描前先确认它来自官方通知、现场工作人员等可信渠道。</p>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">2</div>
+        <div class="tip-body">
+          <h2>打开后看网址</h2>
+          <p>页面做得再像官方，网址域名也可能完全不同，提交信息前先核对地址栏。</p>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">3</div>
+        <div class="tip-body">
+          <h2>涉及个人信息先核验对方身份</h2>
+          <p>学号、身份证号、验证码等信息，务必先通过官方电话或线下渠道确认对方身份再提供。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">本页面为教学演示，你填写的信息仅用于现场统计，<br>讲座结束后将全部删除</div>
+  </div>
+</body>
+</html>
