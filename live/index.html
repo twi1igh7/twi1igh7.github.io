@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>签到实况</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://mlcgybakezeohmipusce.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_73G5nnocuYT2wV_VwiqyKg_4q7K2hhC';
+
+  let dbClient = null;
+  try {
+    dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) {
+    dbClient = null;
+  }
+</script>
+<style>
+  :root {
+    --cyan: #53d8ff;
+    --cyan-glow: rgba(83, 216, 255, .35);
+    --text: #dbe6f5;
+    --text-dim: #6f7f9d;
+    --row-line: rgba(255, 255, 255, .06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: #050a17;
+    background: radial-gradient(120% 100% at 70% -10%, #0e2148 0%, #081327 45%, #050a17 100%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 科技风网格 + 顶部光晕 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(900px 480px at 78% -8%, rgba(64, 150, 255, .16), transparent 62%),
+      linear-gradient(rgba(90, 150, 255, .05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90, 150, 255, .05) 1px, transparent 1px);
+    background-size: auto, 64px 64px, 64px 64px;
+    pointer-events: none;
+  }
+
+  header, main, footer { position: relative; z-index: 1; }
+
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding: clamp(16px, 2.6vh, 30px) clamp(24px, 2.6vw, 52px) clamp(6px, 1.2vh, 14px);
+    border-bottom: 1px solid rgba(83, 216, 255, .18);
+  }
+
+  .head-left h1 {
+    font-size: clamp(30px, 2.9vw, 56px);
+    font-weight: 800;
+    letter-spacing: 8px;
+    color: #fff;
+    text-shadow: 0 0 26px var(--cyan-glow);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    white-space: nowrap;
+  }
+  .head-left h1::before {
+    content: "";
+    width: 8px;
+    height: 1.15em;
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--cyan), #2b7bd4);
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+  .head-left .sub {
+    margin-top: 8px;
+    font-size: clamp(13px, 1.1vw, 20px);
+    letter-spacing: 3px;
+    color: var(--text-dim);
+  }
+
+  .head-right {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(10px, 1vw, 20px);
+    white-space: nowrap;
+  }
+  .total {
+    font-size: clamp(84px, 8.5vw, 170px); /* 1920 宽下约 163px */
+    line-height: 1;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #74e3ff;
+    text-shadow: 0 0 34px var(--cyan-glow);
+  }
+  .total.pop { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.16); }
+    100% { transform: scale(1); }
+  }
+  .total-label {
+    font-size: clamp(16px, 1.45vw, 28px);
+    letter-spacing: 4px;
+    color: var(--text-dim);
+  }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    padding: clamp(6px, 1.4vh, 16px) clamp(24px, 2.6vw, 52px);
+  }
+
+  #list {
+    list-style: none;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    flex: 1;
+    min-height: 0;
+    max-height: 76px;
+    display: grid;
+    grid-template-columns: clamp(52px, 4vw, 84px) 1.25fr 1fr clamp(130px, 11vw, 210px);
+    align-items: center;
+    gap: clamp(12px, 1.4vw, 30px);
+    border-bottom: 1px solid var(--row-line);
+    padding: 0 6px;
+  }
+  .row .idx {
+    font-size: clamp(15px, 1.35vw, 26px);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+  }
+  .row .xuehao, .row .xingming {
+    font-size: clamp(19px, 1.8vw, 35px);
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .row .time {
+    font-size: clamp(15px, 1.35vw, 26px);
+    font-variant-numeric: tabular-nums;
+    color: #8fd6f2;
+    text-align: right;
+  }
+
+  /* 新记录：从顶部下滑进入 + 高亮闪烁 */
+  .row.new { animation: rowIn .45s cubic-bezier(.2, .7, .3, 1), flash 1.8s ease-out; }
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(-100%); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes flash {
+    0%   { background: rgba(83, 216, 255, .30); }
+    60%  { background: rgba(83, 216, 255, .10); }
+    100% { background: transparent; }
+  }
+
+  .empty {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(18px, 1.7vw, 32px);
+    letter-spacing: 6px;
+    color: var(--text-dim);
+  }
+
+  footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: clamp(8px, 1.4vh, 14px) clamp(24px, 2.6vw, 52px) calc(clamp(8px, 1.4vh, 14px) + env(safe-area-inset-bottom));
+  }
+  #conn {
+    font-size: clamp(12px, .95vw, 17px);
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #conn i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #5b6b88;
+  }
+  #conn.live i { background: #3ddc97; box-shadow: 0 0 10px rgba(61, 220, 151, .7); }
+  #conn.live { color: #3ddc97; }
+  #conn.down i { background: #ffb020; box-shadow: 0 0 10px rgba(255, 176, 32, .7); }
+  #conn.down { color: #ffb020; }
+  #conn.fail i { background: #ff5d5d; box-shadow: 0 0 10px rgba(255, 93, 93, .7); }
+  #conn.fail { color: #ff5d5d; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="head-left">
+      <h1>签到实况</h1>
+      <p class="sub">《新生安全生存挑战》反诈讲座 · 现场演示</p>
+    </div>
+    <div class="head-right">
+      <div class="total" id="total">0</div>
+      <div class="total-label">人已签到</div>
+    </div>
+  </header>
+
+  <main>
+    <ul id="list"></ul>
+    <div class="empty" id="empty">等待第一条签到…</div>
+  </main>
+
+  <footer>
+    <span id="conn"><i></i><span id="conn-text">正在连接…</span></span>
+  </footer>
+
+<script>
+  (function () {
+    var MAX_ROWS = 15;
+    var POLL_MS = 10000; // Realtime 掉线时的兜底轮询
+
+    var listEl = document.getElementById('list');
+    var emptyEl = document.getElementById('empty');
+    var totalEl = document.getElementById('total');
+    var connEl = document.getElementById('conn');
+    var connTextEl = document.getElementById('conn-text');
+
+    var total = 0;
+    var seenIds = new Set();
+
+    function setConn(state, text) {
+      connEl.className = state;
+      connTextEl.textContent = text;
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function fmtTime(iso) {
+      var d = iso ? new Date(iso) : new Date();
+      if (isNaN(d.getTime())) d = new Date();
+      return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+
+    // 用 DOM API + textContent 构建，防止把提交内容里的字符当成 HTML 渲染
+    function makeRow(rec, index) {
+      var li = document.createElement('li');
+      li.className = 'row';
+
+      var idx = document.createElement('span');
+      idx.className = 'idx';
+      idx.textContent = index;
+
+      var xuehao = document.createElement('span');
+      xuehao.className = 'xuehao';
+      xuehao.textContent = rec.xuehao;
+
+      var xingming = document.createElement('span');
+      xingming.className = 'xingming';
+      xingming.textContent = rec.xingming;
+
+      var time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = fmtTime(rec.created_at);
+
+      li.appendChild(idx);
+      li.appendChild(xuehao);
+      li.appendChild(xingming);
+      li.appendChild(time);
+      return li;
+    }
+
+    function updateTotal() {
+      totalEl.textContent = total;
+      totalEl.classList.remove('pop');
+      void totalEl.offsetWidth; // 强制重排以重新触发动画
+      totalEl.classList.add('pop');
+      emptyEl.style.display = total > 0 ? 'none' : 'flex';
+    }
+
+    // 返回是否为新记录（按 id 去重）
+    function addRow(rec, animate) {
+      if (!rec || seenIds.has(rec.id)) return false;
+      seenIds.add(rec.id);
+      total += 1;
+
+      var li = makeRow(rec, total);
+      if (animate) li.classList.add('new');
+      listEl.prepend(li);
+
+      while (listEl.children.length > MAX_ROWS) {
+        listEl.removeChild(listEl.lastElementChild);
+      }
+      updateTotal();
+      return true;
+    }
+
+    function subscribe() {
+      dbClient
+        .channel('signups-live')
+        .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'signups' },
+          function (payload) {
+            console.log('[realtime] INSERT', payload.new);
+            addRow(payload.new, true);
+          })
+        .subscribe(function (status) {
+          console.log('[signups-live] 订阅状态:', status);
+          if (status === 'SUBSCRIBED') {
+            setConn('live', '实时同步已连接');
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            setConn('down', '实时连接中断，10 秒轮询兜底中');
+          } else if (status === 'CLOSED') {
+            setConn('down', '连接已关闭，轮询兜底中');
+          }
+        });
+    }
+
+    // 兜底：定期拉全表，靠 id 去重补上 Realtime 漏掉的记录
+    async function poll() {
+      try {
+        var res = await dbClient
+          .from('signups')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (res.error) throw res.error;
+        res.data.slice().reverse().forEach(function (rec) {
+          var added = addRow(rec, true);
+          if (added) console.log('[poll] 补入漏收记录', rec.id);
+        });
+      } catch (err) {
+        console.warn('[poll] 拉取失败', err);
+      }
+    }
+
+    async function init() {
+      if (!dbClient) {
+        setConn('fail', 'Supabase 客户端初始化失败');
+        console.error('createClient 失败：请检查 SUPABASE_URL / SUPABASE_ANON_KEY');
+        return;
+      }
+
+      // 1. 初始加载：全表按 created_at 倒序
+      try {
+        var res = await dbClient
+          .from('signups')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (res.error) throw res.error;
+        // 倒序结果反转后逐条 prepend，最终顶部是最新一条，序号 = 累计总人数
+        res.data.slice().reverse().forEach(function (rec) { addRow(rec, false); });
+        console.log('[init] 初始加载', total, '条记录');
+      } catch (err) {
+        console.error('[init] 初始加载失败', err);
+        setConn('fail', '数据库连接失败，请检查网络或表配置');
+        return;
+      }
+
+      // 2. 订阅实时插入
+      setConn('down', '正在连接实时通道…');
+      subscribe();
+
+      // 3. 轮询兜底
+      setInterval(poll, POLL_MS);
+    }
+
+    init();
+  })();
+</script>
+</body>
+</html>
