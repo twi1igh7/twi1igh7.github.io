@@ -327,10 +327,16 @@
     async function deleteOne(rec, li) {
       if (!dbClient) return;
       if (!confirm('删除这条签到记录？\n' + rec.xuehao + '  ' + rec.xingming)) return;
-      var res = await dbClient.from('signups').delete().eq('id', rec.id);
+      var res = await dbClient.from('signups').delete().eq('id', rec.id).select('id');
       if (res.error) {
         console.error('[delete] 删除失败', res.error);
         setConn('fail', '删除失败：' + res.error.message);
+        return;
+      }
+      if (!res.data || res.data.length === 0) {
+        // RLS 拦截时 PostgREST 返回"成功但删了 0 行"，必须当作失败处理
+        console.error('[delete] 数据库未放行删除（缺少 delete 策略）');
+        setConn('fail', '删除失败：请先在 Supabase 添加 anon delete 策略');
         return;
       }
       seenIds.delete(rec.id);
@@ -344,10 +350,15 @@
       if (!dbClient || total === 0) return;
       if (!confirm('清空全部 ' + total + ' 条签到记录？此操作不可恢复！')) return;
       var ids = Array.from(seenIds);
-      var res = await dbClient.from('signups').delete().in('id', ids);
+      var res = await dbClient.from('signups').delete().in('id', ids).select('id');
       if (res.error) {
         console.error('[clear] 清空失败', res.error);
         setConn('fail', '清空失败：' + res.error.message);
+        return;
+      }
+      if (!res.data || res.data.length === 0) {
+        console.error('[clear] 数据库未放行删除（缺少 delete 策略）');
+        setConn('fail', '清空失败：请先在 Supabase 添加 anon delete 策略');
         return;
       }
       seenIds.clear();
