@@ -133,7 +133,7 @@
     min-height: 0;
     max-height: 76px;
     display: grid;
-    grid-template-columns: clamp(52px, 4vw, 84px) 1.25fr 1fr clamp(130px, 11vw, 210px);
+    grid-template-columns: clamp(52px, 4vw, 84px) 1.25fr 1fr clamp(130px, 11vw, 210px) 44px;
     align-items: center;
     gap: clamp(12px, 1.4vw, 30px);
     border-bottom: 1px solid var(--row-line);
@@ -159,6 +159,25 @@
     color: #8fd6f2;
     text-align: right;
   }
+
+  /* 删除按钮：仅悬停该行时浮现，投屏画面平时不出现任何按钮 */
+  .row .del {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255, 93, 93, .45);
+    border-radius: 50%;
+    background: rgba(255, 93, 93, .07);
+    color: #ff7a7a;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    justify-self: end;
+    transition: opacity .15s, background-color .15s;
+  }
+  .row:hover .del { opacity: 1; pointer-events: auto; }
+  .row .del:hover { background: rgba(255, 93, 93, .22); }
 
   /* 新记录：从顶部下滑进入 + 高亮闪烁 */
   .row.new { animation: rowIn .45s cubic-bezier(.2, .7, .3, 1), flash 1.8s ease-out; }
@@ -187,6 +206,12 @@
     justify-content: flex-end;
     align-items: center;
     padding: clamp(8px, 1.4vh, 14px) clamp(24px, 2.6vw, 52px) calc(clamp(8px, 1.4vh, 14px) + env(safe-area-inset-bottom));
+  }
+  .hint {
+    margin-right: auto;
+    font-size: clamp(11px, .85vw, 15px);
+    letter-spacing: 2px;
+    color: rgba(111, 127, 157, .6);
   }
   #conn {
     font-size: clamp(12px, .95vw, 17px);
@@ -232,6 +257,7 @@
   </main>
 
   <footer>
+    <span class="hint">测试模式：悬停记录可删除单条 · 按 C 清空全部</span>
     <span id="conn"><i></i><span id="conn-text">正在连接…</span></span>
   </footer>
 
@@ -287,8 +313,53 @@
       li.appendChild(xuehao);
       li.appendChild(xingming);
       li.appendChild(time);
+
+      var del = document.createElement('button');
+      del.className = 'del';
+      del.type = 'button';
+      del.title = '删除这条记录';
+      del.textContent = '\u00d7';
+      del.addEventListener('click', function () { deleteOne(rec, li); });
+      li.appendChild(del);
       return li;
     }
+
+    async function deleteOne(rec, li) {
+      if (!dbClient) return;
+      if (!confirm('删除这条签到记录？\n' + rec.xuehao + '  ' + rec.xingming)) return;
+      var res = await dbClient.from('signups').delete().eq('id', rec.id);
+      if (res.error) {
+        console.error('[delete] 删除失败', res.error);
+        setConn('fail', '删除失败：' + res.error.message);
+        return;
+      }
+      seenIds.delete(rec.id);
+      total -= 1;
+      li.remove();
+      updateTotal();
+      console.log('[delete] 已删除记录 id=', rec.id);
+    }
+
+    async function clearAll() {
+      if (!dbClient || total === 0) return;
+      if (!confirm('清空全部 ' + total + ' 条签到记录？此操作不可恢复！')) return;
+      var ids = Array.from(seenIds);
+      var res = await dbClient.from('signups').delete().in('id', ids);
+      if (res.error) {
+        console.error('[clear] 清空失败', res.error);
+        setConn('fail', '清空失败：' + res.error.message);
+        return;
+      }
+      seenIds.clear();
+      total = 0;
+      listEl.innerHTML = '';
+      updateTotal();
+      console.log('[clear] 已清空', ids.length, '条记录');
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'c' || e.key === 'C') clearAll();
+    });
 
     function updateTotal() {
       totalEl.textContent = total;
