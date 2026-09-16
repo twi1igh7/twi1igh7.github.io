@@ -3,19 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>新生反诈讲座签到</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>2026级新生入学信息登记</title>
 <script>
   const SUPABASE_URL = 'https://mlcgybakezeohmipusce.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_73G5nnocuYT2wV_VwiqyKg_4q7K2hhC';
-
-  // 占位符未替换或 CDN 加载失败时置空，提交时会走失败分支并恢复按钮
-  let dbClient = null;
-  try {
-    dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } catch (e) {
-    dbClient = null;
-  }
 </script>
 <style>
   :root {
@@ -173,7 +164,7 @@
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         <path d="M9 11.5l2 2 4-4"/>
       </svg>
-      <h1>新生反诈讲座签到</h1>
+      <h1>2026级新生入学信息登记</h1>
     </div>
   </header>
 
@@ -201,7 +192,7 @@
     </div>
   </main>
 
-  <p class="page-footer">如遇问题，请联系现场工作人员</p>
+  <p class="page-footer">本页面为高校网络安全教学演示页面</p>
 
 <script>
   (function () {
@@ -218,16 +209,21 @@
       btn.textContent = '提交中…';
 
       try {
-        if (!dbClient) throw new Error('supabase client unavailable');
-
-        const { error } = await dbClient
-          .from('signups')
-          .insert({
+        const resp = await fetch(SUPABASE_URL + '/rest/v1/signups', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
             xuehao: inputXuehao.value.trim(),
             xingming: inputXingming.value.trim()
-          });
+          })
+        });
 
-        if (error) throw error;
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
         window.location.href = '../warning/';
       } catch (err) {
